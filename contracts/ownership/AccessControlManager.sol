@@ -6,7 +6,7 @@ import "./AccessControl.sol";
 
 contract AccessControlManager is AccessControl {
 
-    string public constant ROLE_ADMIN = "admin";
+    string public constant ROLE_ADMIN = "superAdmin";
     string public constant PLATFORM_ADMIN = "platformAdmin";
 
     /**

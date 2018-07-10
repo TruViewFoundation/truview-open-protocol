@@ -12,7 +12,7 @@ import "../ownership/AccessControlWrapper.sol";
 contract TruViewToken is MintableToken, BurnableToken, DetailedERC20, AccessControlWrapper {
 
 
-    string public constant ROLE_ADMIN = "admin";
+    string public constant ROLE_ADMIN = "superAdmin";
     string public constant PLATFORM_ADMIN = "platformAdmin";
 
     //Token Spec
