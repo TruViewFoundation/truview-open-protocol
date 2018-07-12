@@ -8,11 +8,8 @@ contract MintableToken is StandardToken, Ownable {
   event Mint(address indexed to, uint256 amount);
   event MintFinished();
 
-  bool public mintingFinished = false;
-
 
   modifier canMint() {
-    require(!mintingFinished);
     _;
   }
 
@@ -30,13 +27,5 @@ contract MintableToken is StandardToken, Ownable {
     return true;
   }
 
-  /**
-   * @dev Function to stop minting new tokens.
-   * @return True if the operation was successful.
-   */
-  function finishMinting() onlyOwner canMint public returns (bool) {
-    mintingFinished = true;
-    emit MintFinished();
-    return true;
-  }
+
 }

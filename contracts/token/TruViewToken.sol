@@ -6,10 +6,10 @@ import "./BurnableToken.sol";
 import "./StandardToken.sol";
 import "./DetailedERC20.sol";
 import "../ownership/Ownable.sol";
-import "../ownership/AccessControlWrapper.sol";
+import "../ownership/AccessControlClient.sol";
 
 
-contract TruViewToken is MintableToken, BurnableToken, DetailedERC20, AccessControlWrapper {
+contract TruViewToken is MintableToken, BurnableToken, DetailedERC20, AccessControlClient {
 
 
     string public constant ROLE_ADMIN = "superAdmin";
@@ -26,7 +26,7 @@ contract TruViewToken is MintableToken, BurnableToken, DetailedERC20, AccessCont
       * @dev Throws if called by any account other than the minters(ACM) or if the minting period finished.
       */
     modifier canMint() {
-        require(!mintingFinished && _isMinter(msg.sender));
+        require(_isMinter(msg.sender));
         _;
     }
 
@@ -40,13 +40,13 @@ contract TruViewToken is MintableToken, BurnableToken, DetailedERC20, AccessCont
 
 
     constructor (AccessControlManager acm)
-    AccessControlWrapper(acm)
+    AccessControlClient(acm)
     DetailedERC20(NAME,SYMBOL,DECIMALS) public{}
 
 
 
     function _isMinter(address addr) internal returns (bool) {
-        return hasRole(addr,PLATFORM_ADMIN) || hasRole(addr,ROLE_ADMIN);
+        return hasRole(addr,PLATFORM_ADMIN);
     }
 
     function transfer(address _to, uint256 _value) canTransfer public returns (bool) {

@@ -3,13 +3,13 @@ pragma solidity ^0.4.21;
 import "./AccessControlManager.sol";
 
 
-contract AccessControlWrapper {
+contract AccessControlClient {
 
 
     AccessControlManager acm;
 
 
-    function AccessControlWrapper(AccessControlManager addr){
+    function AccessControlClient(AccessControlManager addr){
         acm = AccessControlManager(addr);
     }
 

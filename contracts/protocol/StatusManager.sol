@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../ownership/AccessControlWrapper.sol";
 
-contract StatusManager is AccessControlWrapper {
+contract StatusManager is AccessControlClient {
 
     string public constant PLATFORM_ADMIN = "platformAdmin";
     string public constant ROLE_PLATFORM = "platform";
