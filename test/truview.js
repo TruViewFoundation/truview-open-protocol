@@ -21,7 +21,7 @@ var tokenContract = artifacts.require("./token/TruViewToken.sol");
 var accessControlContract = artifacts.require("./ownership/AccessControlManager.sol");
 
 
-contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv]) {
+contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv,o1,o2,o3,o4]) {
     var ROLE_ADMIN = "superAdmin";
     var PLATFORM_ADMIN = "platformAdmin";
     var PLATFORM_ROLE = "platformAdmin";
@@ -42,9 +42,7 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv]) {
             const result2 = await acm.adminAddRole(p2, PLATFORM_ADMIN, {from: admin});
             const result3 = await acm.adminAddRole(p3, PLATFORM_ADMIN, {from: admin});
 
-        }
-    )
-
+        })
 
     describe('TruView Token', function () {
         it('has a name', async function () {
@@ -64,7 +62,6 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv]) {
 
 
         describe('Minting Tokens', function () {
-
 
             const amount = 200 * 10 ** _decimals;
 
@@ -94,8 +91,6 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv]) {
 
             describe('when the sender is not platform admin', function () {
                 const from = tv;
-
-
                 it('reverts', async function () {
                     await assertRevert(token.mint(admin, amount, {from}));
                 });
@@ -147,7 +142,6 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv]) {
         });
     });
 
-
     describe('Access Control Manager', function () {
 
         it('constructor admin role addition', async function () {
@@ -187,6 +181,17 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv]) {
             assertRevert(acm.addAdmin(admin2, {from: p1}));
         });
 
+        it('cant add superAdmin role from regular adminAddRole - platform admin', async function () {
+            assertRevert(acm.adminAddRole(p2, ROLE_ADMIN, {from: p1}));
+        });
+
+        it('cant add superAdmin role from regular adminAddRole - super admin', async function () {
+            assertRevert(acm.adminAddRole(p2, ROLE_ADMIN, {from: admin}));
+        });
+
+        it('cant add superAdmin role from regular adminAddRoles - unauthorized account', async function () {
+            assertRevert(acm.adminAddRole(o1, ROLE_ADMIN, {from: o4}));
+        });
 
         it('adding new platform by admin', async function () {
             const result2 = await acm.adminAddRole(p2, PLATFORM_ROLE, {from: admin});
@@ -200,9 +205,7 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv]) {
             assert(has);
         });
 
-
     });
-
 
 });
 

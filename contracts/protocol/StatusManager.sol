@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "../ownership/AccessControlWrapper.sol";
+import "../ownership/AccessControlClient.sol";
 
 contract StatusManager is AccessControlClient {
 

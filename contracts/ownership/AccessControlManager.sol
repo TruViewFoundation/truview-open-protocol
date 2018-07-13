@@ -86,4 +86,34 @@ contract AccessControlManager is AccessControl {
     }
 
 
+    /**
+     * @dev add a role to an addresses array
+     * solidity dosen't supports dynamic arrays as arguments so only one role at time.
+     * @param addrs addresses
+     * @param roleName the name of the role
+     */
+    function adminAddRoles(address[] addrs, string roleName)
+    public
+    {
+        for (uint256 i = 0; i < addrs.length; i++) {
+            adminAddRole(addrs[i],roleName);
+        }
+    }
+
+
+    /**
+     * @dev remove a specific role from an addresses array
+     * solidity dosen't supports dynamic arrays as arguments so only one role at time.
+     * @param addrs addresses
+     * @param roleName the name of the role
+     */
+    function adminRemoveRoles(address[] addrs, string roleName)
+    public
+    {
+        for (uint256 i = 0; i < addrs.length; i++) {
+            adminRemoveRole(addrs[i],roleName);
+        }
+    }
+
+
 }
