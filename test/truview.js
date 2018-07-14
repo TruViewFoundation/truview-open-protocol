@@ -21,7 +21,7 @@ var tokenContract = artifacts.require("./token/TruViewToken.sol");
 var accessControlContract = artifacts.require("./ownership/AccessControlManager.sol");
 
 
-contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv,o1,o2,o3,o4]) {
+contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv, o1, o2, o3, o4]) {
     var ROLE_ADMIN = "superAdmin";
     var PLATFORM_ADMIN = "platformAdmin";
     var PLATFORM_ROLE = "platformAdmin";
@@ -34,15 +34,15 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv,o1,o2,o3,
 
 
     beforeEach(async function () {
-            acm = await accessControlContract.new({from: admin});
-            token = await tokenContract.new(acm.address);
+        acm = await accessControlContract.new({from: admin});
+        token = await tokenContract.new(acm.address);
 
-            const result = await acm.adminAddRole(p1, PLATFORM_ADMIN, {from: admin});
-            const result1 = await acm.addAdmin(admin2, {from: admin});
-            const result2 = await acm.adminAddRole(p2, PLATFORM_ADMIN, {from: admin});
-            const result3 = await acm.adminAddRole(p3, PLATFORM_ADMIN, {from: admin});
+        const result = await acm.adminAddRole(p1, PLATFORM_ADMIN, {from: admin});
+        const result1 = await acm.addAdmin(admin2, {from: admin});
+        const result2 = await acm.adminAddRole(p2, PLATFORM_ADMIN, {from: admin});
+        const result3 = await acm.adminAddRole(p3, PLATFORM_ADMIN, {from: admin});
 
-        })
+    })
 
     describe('TruView Token', function () {
         it('has a name', async function () {
@@ -140,6 +140,8 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv,o1,o2,o3,
             });
 
         });
+
+
     });
 
     describe('Access Control Manager', function () {
@@ -204,6 +206,123 @@ contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv,o1,o2,o3,
             let has = await acm.hasRole(p3, PLATFORM_ROLE);
             assert(has);
         });
+
+        describe('Bulk Roles Addition', function () {
+            it('adding new platforms by platform admin', async function () {
+                const result2 = await acm.adminAddRoles([o1, o2], PLATFORM_ROLE, {from: p1});
+                let has = await acm.hasRole(o1, PLATFORM_ROLE);
+                let has1 = await acm.hasRole(o2, PLATFORM_ROLE);
+                assert(has);
+                assert(has1);
+            });
+            it('adding new platforms by superAdmin', async function () {
+                const result2 = await acm.adminAddRoles([o1, o2], PLATFORM_ROLE, {from: admin});
+                let has = await acm.hasRole(o1, PLATFORM_ROLE);
+                let has1 = await acm.hasRole(o2, PLATFORM_ROLE);
+                assert(has);
+                assert(has1);
+            });
+
+            it('cant add roles - non admin account', async function () {
+                assertRevert(acm.adminAddRoles([o1, o2], ROLE_ADMIN, {from: o3}));
+            });
+
+            it('cant add superAdmin role from regular adminAddRoles - superAdmin', async function () {
+                assertRevert(acm.adminAddRoles([o1, o2], ROLE_ADMIN, {from: admin}));
+            });
+            it('cant add superAdmin role from regular adminAddRoles - paltformAdmin', async function () {
+                assertRevert(acm.adminAddRoles([o1, o2], ROLE_ADMIN, {from: p1}));
+            });
+
+            it('cant add superAdmin role from regular adminAddRoles - unauthorized account', async function () {
+                assertRevert(acm.adminAddRoles([o1, o2], ROLE_ADMIN, {from: o4}));
+            });
+
+
+        });
+
+        describe('Roles Removal', function () {
+            beforeEach(async function () {
+                const result2 = await acm.adminAddRoles([o1, o2, o3], PLATFORM_ROLE, {from: admin});
+            });
+
+            it('removing new platforms by platform admin', async function () {
+                const result2 = await acm.adminRemoveRole(o1, PLATFORM_ROLE, {from: p1});
+                let has = await acm.hasRole(o1, PLATFORM_ROLE);
+                assert(!has);
+            });
+
+            it('removing new platforms by superAdmin', async function () {
+                const result2 = await acm.adminRemoveRole(o1, PLATFORM_ROLE, {from: admin});
+                let has = await acm.hasRole(o1, PLATFORM_ROLE);
+                assert(!has);
+            });
+
+            it('removing platform role by Platform - revert', async function () {
+                assertRevert(acm.adminRemoveRole(admin, PLATFORM_ROLE, {from: o1}));
+            });
+
+            it('removing platform role by unauthorized - revert', async function () {
+                assertRevert(acm.adminRemoveRole(admin, PLATFORM_ROLE, {from: o4}));
+            });
+
+            it('removing admin role by superAdmin - revert', async function () {
+                assertRevert(acm.adminRemoveRole(admin, ROLE_ADMIN, {from: admin}));
+            });
+
+            it('removing admin role by plaformAdmin - revert', async function () {
+                assertRevert(acm.adminRemoveRole(admin, ROLE_ADMIN, {from: p1}));
+            });
+
+            it('removing admin role by Platform - revert', async function () {
+                assertRevert(acm.adminRemoveRole(admin, ROLE_ADMIN, {from: o1}));
+            });
+
+            it('removing admin role by unauthorized - revert', async function () {
+                assertRevert(acm.adminRemoveRole(admin, ROLE_ADMIN, {from: o4}));
+            });
+
+        });
+
+        describe('Bulk roles removal', function () {
+            beforeEach(async function () {
+                const result2 = await acm.adminAddRoles([o1, o2, o3], PLATFORM_ROLE, {from: admin});
+            });
+
+            it('removing new platforms by platform admin', async function () {
+                const result2 = await acm.adminRemoveRoles([o1, o2], PLATFORM_ROLE, {from: p1});
+                let has = await acm.hasRole(o1, PLATFORM_ROLE);
+                let has1 = await acm.hasRole(o2, PLATFORM_ROLE);
+                assert(!has);
+                assert(!has1);
+            });
+
+            it('removing new platforms by superAdmin', async function () {
+                const result2 = await acm.adminRemoveRoles([o1, o2], PLATFORM_ROLE, {from: admin});
+                let has = await acm.hasRole(o1, PLATFORM_ROLE);
+                let has1 = await acm.hasRole(o2, PLATFORM_ROLE);
+                assert(!has);
+                assert(!has1);
+            });
+
+            it('removing admin role by superAdmin - revert', async function () {
+                assertRevert(acm.adminRemoveRoles([admin, o2], ROLE_ADMIN, {from: admin}));
+            });
+
+            it('removing admin role by plaformAdmin - revert', async function () {
+                assertRevert(acm.adminRemoveRoles([admin, o2], ROLE_ADMIN, {from: p1}));
+            });
+
+            it('removing admin role by Platform - revert', async function () {
+                assertRevert(acm.adminRemoveRoles([admin, o2], ROLE_ADMIN, {from: o1}));
+            });
+
+            it('removing admin role by unauthorized - revert', async function () {
+                assertRevert(acm.adminRemoveRoles([admin, o2], ROLE_ADMIN, {from: o4}));
+            });
+
+        });
+
 
     });
 
