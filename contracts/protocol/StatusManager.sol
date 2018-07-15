@@ -1,31 +1,36 @@
 pragma solidity ^0.4.24;  
 
 import "../ownership/AccessControlClient.sol";
-import "../token/MintableToken.sol";
+import "../token/TruViewToken.sol";
+
 
 contract StatusManager is AccessControlClient {
 
     string public constant PLATFORM_ADMIN = "platformAdmin";
     string public constant ROLE_PLATFORM = "platform";
+    uint public constant TIME_TO_CLAIM = 30 * 1 days;
 
     // Enum for new tokens state :
     // Pending - Token generated - within creation lock time period and not disputed / claimed
     // Claimed - Token was gnenerated and claimed by the platform - valid token
     // Disputed - Token was generated but was disputed by the concensus model  
     enum State { Pending, Claimed, Disputed } 
+    uint transactionId = 0; //unique indentifier for a platform transaction request
 
-    struct TokenData { // Struct
+    struct TokenRequest { // Struct
         State  state; // Pending, Claimed, Disputed
         string url; // platofrm that created the Token
         uint amount; // Number of token to create
         uint createdDateTime; // created time 
     }
 
-    mapping(address => TokenData) public platformTokenData;
+    mapping(address => mapping (uint =>TokenRequest)) public platformTokenData;
 
     event AddPlatform(address platform , address admin , string platformName);
     event RemovePlatform(address platform , address admin);
-    event Dispute(address disoutedPlatform , address platform, string platformName, string reason);
+    event GenerateNewTokens(address platform , uint txId,uint amount,string url);
+    event Dispute(address disputedPlatform ,uint txId, address auditor,string reason);
+    event Claim(address toPlatform,uint txId,address from,string reason);
 
     /**
      * @dev modifier to scope access to platforms
@@ -44,6 +49,66 @@ contract StatusManager is AccessControlClient {
     {
         checkRole(msg.sender, PLATFORM_ADMIN);
         _;
+    }
+
+    /** 
+    * @dev modifier to validate State Changes
+    * // reverts
+    */
+    modifier isValidState(address platform,uint txId,State nextState)
+    {
+        if(msg.sender != platform){
+            State currState = platformTokenData[platform][txId].state;
+            if(checkState(currState,nextState)){_;}
+        }
+    }
+
+    /** 
+    * @dev modifier to validate whether a dipsute is allowed 
+     * // reverts
+     */
+    modifier canDispute(address platform,uint txId)
+    {
+        if(msg.sender != platform){
+            uint createdTime = platformTokenData[platform][txId].createdDateTime;
+            // If TIME_TO_CLAIM days have not passed since the token generation , the transaction cn be disputed.
+            if(now - createdTime < TIME_TO_CLAIM){_;}
+        }
+    }
+     /** 
+    * @dev modifier to validate whether a dipsute is allowed 
+     * // reverts
+     */
+    modifier canClaim(uint txId)
+    {
+        uint createdTime = platformTokenData[msg.sender][txId].createdDateTime;
+        if(now - createdTime >= TIME_TO_CLAIM){_;}   
+    }
+    /** 
+     *  @dev checkState - checks if a State change is allowed
+     *  @return bool True is the State change is allowed.
+     */
+    function checkState(State currState,State nextState)
+    internal
+    pure
+    returns(bool)
+    {
+        //To dispute / claim a transaction , previous state has to be pending
+        if((nextState == State.Disputed || nextState == State.Claimed) && currState == State.Pending)
+        {
+            return true;
+        }
+        return false;
+    }
+     /** 
+     *  @dev getNextTransactionIdVal - get next value for the transaction counter id.
+     *  @return uint representing the next transaction id.
+     */
+    function getNextTransactionIdVal()
+    internal
+    returns(uint)
+    {
+        return ++transactionId;
     }
 
     /** 
@@ -88,37 +153,56 @@ contract StatusManager is AccessControlClient {
     public
     returns (bool)
     {   
-        MintableToken mintNewToken;
-        require(mintNewToken.mint(msg.sender, amount));
-        TokenData storage newToken;
+        TruViewToken mintNewToken;
+        mintNewToken.mint(address(this), amount);// the conrtact mints the tokens. later on the platform can claim it.
+        TokenRequest storage newToken;
         newToken.state = State.Pending; // first state of a token is Pending
         newToken.url = url; // url that generated the engagemments for the tokens being genenrated 
         newToken.amount = amount; // amount of Tokens to generate
         newToken.createdDateTime = now;  // generating time 
-        platformTokenData[msg.sender] = newToken;
+        uint txId = getNextTransactionIdVal();
+        platformTokenData[msg.sender][txId] = newToken;
+        emit GenerateNewTokens(msg.sender, txId, amount, url);
         return true;
          
     }
     /** 
      *  @dev disputeGeneration - cancel the generation of a token 
-     *  @param amount amount of tokens to cancel
-     *  @param url the url which the tokens are being cancelled for
-     *  @return returnCode to specify the status of the operation
+     *  @param platform -  the platoform which the tokens are being cancelled for
+     *  @param txId -  the transaction which the tokens are being cancelled for
      */
-    function disputeGeneration (string url )
+    function disputeGeneration (address platform,uint txId)
     onlyPlatform
+    isValidState(platform,txId,State.Disputed)
+    canDispute(platform,txId)
     public
-    returns (bool)
     {
-        
-
+        TruViewToken disputeTokens;
+        uint amount = platformTokenData[platform][txId].amount; //amount of token generated for this transaction.
+        disputeTokens.burn(amount);
+        //Change transcation status to Disputed
+        platformTokenData[platform][txId].state = State.Disputed;
+        emit Dispute(platform,txId,msg.sender,"disputed");
     }
 
     /** 
      *  @dev claimToken - generated tokens which were not disputed with in the block period can be claimed
-     *  @param amount amount of tokens to claim
-     *  @param url the url which the tokens are being claimed for
-     *  @return returnCode to specify the status of the operation
+     *  @param txId the transaction which the tokens are being claimed for 
      */
+    function claimToken (uint txId)
+    onlyPlatform
+    isValidState(msg.sender,txId,State.Claimed)
+    canClaim(txId)
+    public
+    {
+        TruViewToken disputeTokens;
+        //transfer funds
+        uint amount = platformTokenData[msg.sender][txId].amount;// amount to be claimed
+        require(disputeTokens.transfer(msg.sender,amount));
+       //Change transcation status to Claimed
+        platformTokenData[msg.sender][txId].state = State.Claimed;
+        emit Claim(msg.sender,txId,address(this),"claimed");
+    }
+
 
 }
