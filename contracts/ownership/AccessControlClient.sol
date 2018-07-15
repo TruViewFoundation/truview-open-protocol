@@ -9,12 +9,13 @@ contract AccessControlClient {
     AccessControlManager acm;
 
 
-    function AccessControlClient(AccessControlManager addr){
+    constructor(AccessControlManager addr) public {
         acm = AccessControlManager(addr);
     }
 
     /**
     * @dev add a role to an address
+    * ONLY WITH RELEVANT ROLES!!
     * @param addr address
     * @param roleName the name of the role
     */
@@ -27,6 +28,7 @@ contract AccessControlClient {
 
     /**
      * @dev remove a role from an address
+     * ONLY WITH RELEVANT ROLES!!
      * @param addr address
      * @param roleName the name of the role
      */
@@ -34,6 +36,34 @@ contract AccessControlClient {
     public
     {
         acm.adminRemoveRole(addr,roleName);
+    }
+
+    /**
+     * @dev add a role to an addresses array
+     * ONLY WITH RELEVANT ROLES!!
+     * solidity dosen't supports dynamic arrays as arguments so only one role at time.
+     * @param addrs addresses
+     * @param roleName the name of the role
+     */
+    function addRoles(address[] addrs, string roleName)
+    public
+    {
+        acm.adminAddRoles(addrs,roleName);
+
+    }
+
+
+    /**
+     * @dev remove a specific role from an addresses array
+     * ONLY WITH RELEVANT ROLES!!
+     * solidity dosen't supports dynamic arrays as arguments so only one role at time.
+     * @param addrs addresses
+     * @param roleName the name of the role
+     */
+    function removeRoles(address[] addrs, string roleName)
+    public
+    {
+        acm.adminRemoveRoles(addrs,roleName);
     }
 
     /**

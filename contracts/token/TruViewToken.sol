@@ -45,7 +45,7 @@ contract TruViewToken is MintableToken, BurnableToken, DetailedERC20, AccessCont
 
 
 
-    function _isMinter(address addr) internal returns (bool) {
+    function _isMinter(address addr) internal view returns (bool) {
         return hasRole(addr,PLATFORM_ADMIN);
     }
 

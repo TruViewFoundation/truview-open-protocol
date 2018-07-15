@@ -1,7 +1,10 @@
 pragma solidity ^0.4.24;
 
 import "../ownership/AccessControlClient.sol";
+<<<<<<< HEAD
 import "../token/MintableToken.sol";
+=======
+>>>>>>> a0f9a54880a141765d1e965fef88bfed5edfa3ac
 
 contract StatusManager is AccessControlClient {
 

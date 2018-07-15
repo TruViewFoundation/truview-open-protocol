@@ -24,14 +24,14 @@ contract AccessControlManager is AccessControl {
      *
      */
     modifier canUpdateRole(string role){
-        if ((keccak256(role) != keccak256(ROLE_ADMIN) && (hasRole(msg.sender, ROLE_ADMIN) || hasRole(msg.sender, PLATFORM_ADMIN))))
+        if ((keccak256(abi.encodePacked(role)) != keccak256(abi.encodePacked(ROLE_ADMIN)) && (hasRole(msg.sender, ROLE_ADMIN) || hasRole(msg.sender, PLATFORM_ADMIN))))
         _;
     }
 
     /**
      * @dev constructor. Sets msg.sender as admin by default
      */
-    function AccessControlManager()
+    constructor()
     public
     {
         addRole(msg.sender, ROLE_ADMIN);
@@ -83,6 +83,36 @@ contract AccessControlManager is AccessControl {
     public
     {
         removeRole(addr, roleName);
+    }
+
+
+    /**
+     * @dev add a role to an addresses array
+     * solidity dosen't supports dynamic arrays as arguments so only one role at time.
+     * @param addrs addresses
+     * @param roleName the name of the role
+     */
+    function adminAddRoles(address[] addrs, string roleName)
+    public
+    {
+        for (uint256 i = 0; i < addrs.length; i++) {
+            adminAddRole(addrs[i],roleName);
+        }
+    }
+
+
+    /**
+     * @dev remove a specific role from an addresses array
+     * solidity dosen't supports dynamic arrays as arguments so only one role at time.
+     * @param addrs addresses
+     * @param roleName the name of the role
+     */
+    function adminRemoveRoles(address[] addrs, string roleName)
+    public
+    {
+        for (uint256 i = 0; i < addrs.length; i++) {
+            adminRemoveRole(addrs[i],roleName);
+        }
     }
 
 
