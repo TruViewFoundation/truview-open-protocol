@@ -14,17 +14,18 @@ contract StatusManager is AccessControlClient {
     // Disputed - Token was generated but was disputed by the concensus model  
     enum State { Pending, Claimed, Disputed } 
 
-    struct NewTokens { // Struct
+    struct TokenData { // Struct
         State  state; // Pending, Claimed, Disputed
         string url; // platofrm that created the Token
         uint amount; // Number of token to create
         uint createdDateTime; // created time 
     }
 
-    mapping(address => NewTokens) public newTokenData;
+    mapping(address => TokenData) public platformTokenData;
 
     event AddPlatform(address platform , address admin , string platformName);
     event RemovePlatform(address platform , address admin);
+    event Dispute(address disoutedPlatform , address platform, string platformName, string reason);
 
     /**
      * @dev modifier to scope access to platforms
@@ -89,12 +90,12 @@ contract StatusManager is AccessControlClient {
     {   
         MintableToken mintNewToken;
         require(mintNewToken.mint(msg.sender, amount));
-        NewTokens storage newToken;
+        TokenData storage newToken;
         newToken.state = State.Pending; // first state of a token is Pending
         newToken.url = url; // url that generated the engagemments for the tokens being genenrated 
         newToken.amount = amount; // amount of Tokens to generate
         newToken.createdDateTime = now;  // generating time 
-        newTokenData[msg.sender] = newToken;
+        platformTokenData[msg.sender] = newToken;
         return true;
          
     }
@@ -104,9 +105,14 @@ contract StatusManager is AccessControlClient {
      *  @param url the url which the tokens are being cancelled for
      *  @return returnCode to specify the status of the operation
      */
+    function disputeGeneration (string url )
+    onlyPlatform
+    public
+    returns (bool)
+    {
+        
 
-
-
+    }
 
     /** 
      *  @dev claimToken - generated tokens which were not disputed with in the block period can be claimed
