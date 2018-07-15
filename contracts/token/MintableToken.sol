@@ -4,7 +4,7 @@ import "./StandardToken.sol";
 import "../ownership/Ownable.sol";
 
 
-contract MintableToken is StandardToken, Ownable {
+contract MintableToken is StandardToken {
   event Mint(address indexed to, uint256 amount);
   event MintFinished();
 

@@ -24,14 +24,14 @@ contract AccessControlManager is AccessControl {
      *
      */
     modifier canUpdateRole(string role){
-        if ((keccak256(role) != keccak256(ROLE_ADMIN) && (hasRole(msg.sender, ROLE_ADMIN) || hasRole(msg.sender, PLATFORM_ADMIN))))
+        if ((keccak256(abi.encodePacked(role)) != keccak256(abi.encodePacked(ROLE_ADMIN)) && (hasRole(msg.sender, ROLE_ADMIN) || hasRole(msg.sender, PLATFORM_ADMIN))))
         _;
     }
 
     /**
      * @dev constructor. Sets msg.sender as admin by default
      */
-    function AccessControlManager()
+    constructor()
     public
     {
         addRole(msg.sender, ROLE_ADMIN);

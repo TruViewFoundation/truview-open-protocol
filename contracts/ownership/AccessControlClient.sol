@@ -9,7 +9,7 @@ contract AccessControlClient {
     AccessControlManager acm;
 
 
-    function AccessControlClient(AccessControlManager addr){
+    constructor(AccessControlManager addr) public {
         acm = AccessControlManager(addr);
     }
 
