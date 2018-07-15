@@ -1,10 +1,7 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.24;  
 
 import "../ownership/AccessControlClient.sol";
-<<<<<<< HEAD
 import "../token/MintableToken.sol";
-=======
->>>>>>> a0f9a54880a141765d1e965fef88bfed5edfa3ac
 
 contract StatusManager is AccessControlClient {
 
@@ -18,13 +15,13 @@ contract StatusManager is AccessControlClient {
     enum State { Pending, Claimed, Disputed } 
 
     struct NewTokens { // Struct
-        uint  state; // Pending, Claimed, Disputed
+        State  state; // Pending, Claimed, Disputed
         string url; // platofrm that created the Token
         uint amount; // Number of token to create
         uint createdDateTime; // created time 
     }
 
-    mapping(address => NewTokens[]) public newTokenData;
+    mapping(address => NewTokens) public newTokenData;
 
     event AddPlatform(address platform , address admin , string platformName);
     event RemovePlatform(address platform , address admin);
@@ -90,13 +87,15 @@ contract StatusManager is AccessControlClient {
     public
     returns (bool)
     {   
-        mint(msg.sender, amount);
+        MintableToken mintNewToken;
+        require(mintNewToken.mint(msg.sender, amount));
         NewTokens storage newToken;
         newToken.state = State.Pending; // first state of a token is Pending
         newToken.url = url; // url that generated the engagemments for the tokens being genenrated 
         newToken.amount = amount; // amount of Tokens to generate
         newToken.createdDateTime = now;  // generating time 
         newTokenData[msg.sender] = newToken;
+        return true;
          
     }
     /** 
