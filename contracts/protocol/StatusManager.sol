@@ -10,7 +10,7 @@ contract StatusManager is AccessControlClient {
     string public constant ROLE_PLATFORM = "platform";
     uint public constant TIME_TO_CLAIM = 30 days;
     TruViewToken token; 
-
+    
     // Enum for new tokens state :
     // Pending - Token generated - within creation lock time period and not disputed / claimed
     // Claimed - Token was gnenerated and claimed by the platform - valid token
@@ -79,9 +79,10 @@ contract StatusManager is AccessControlClient {
         if(now - createdTime >= TIME_TO_CLAIM){_;}   //TO DO CHANGE THE IF AND CHECK > 0
     }
 
-    constructor (TruViewToken addr) public { token = TruViewToken(addr);}
+    constructor (TruViewToken addr, AccessControlManager acm ) 
+        AccessControlClient(acm)
+        public { token = TruViewToken(addr);}
     
-
     /** 
      *  @dev checkState - checks if a State change is allowed
      *  @return bool True is the State change is allowed.
