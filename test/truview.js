@@ -24,7 +24,7 @@ var accessControlContract = artifacts.require("./ownership/AccessControlManager.
 contract('TruView Contracts', function ([admin, admin2, p1, p2, p3, tv, o1, o2, o3, o4]) {
     var ROLE_ADMIN = "superAdmin";
     var PLATFORM_ADMIN = "platformAdmin";
-    var PLATFORM_ROLE = "platformAdmin";
+    var PLATFORM_ROLE = "platform";
     var _name = 'TruView';
     var _decimals = 18;
     var _symbol = 'TRU'
