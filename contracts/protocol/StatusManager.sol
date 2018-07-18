@@ -8,7 +8,8 @@ contract StatusManager is AccessControlClient {
 
     string public constant PLATFORM_ADMIN = "platformAdmin";
     string public constant ROLE_PLATFORM = "platform";
-    uint public constant TIME_TO_CLAIM = 30 * 1 days;
+    uint public constant TIME_TO_CLAIM = 30 days;
+    TruViewToken token; 
 
     // Enum for new tokens state :
     // Pending - Token generated - within creation lock time period and not disputed / claimed
@@ -36,8 +37,7 @@ contract StatusManager is AccessControlClient {
      * @dev modifier to scope access to platforms
      * // reverts
      */
-    modifier onlyPlatform()
-    {
+    modifier onlyPlatform(){
         checkRole(msg.sender, ROLE_PLATFORM);
         _;
     }
@@ -45,8 +45,7 @@ contract StatusManager is AccessControlClient {
     * @dev modifier to scope access to platforms admins
      * // reverts
      */
-    modifier onlyPlatformAdmin()
-    {
+    modifier onlyPlatformAdmin(){
         checkRole(msg.sender, PLATFORM_ADMIN);
         _;
     }
@@ -55,20 +54,16 @@ contract StatusManager is AccessControlClient {
     * @dev modifier to validate State Changes
     * // reverts
     */
-    modifier isValidState(address platform,uint txId,State nextState)
-    {
-        if(msg.sender != platform){
+    modifier isValidState(address platform,uint txId,State nextState){
             State currState = platformTokenData[platform][txId].state;
             if(checkState(currState,nextState)){_;}
-        }
     }
 
     /** 
     * @dev modifier to validate whether a dipsute is allowed 
      * // reverts
      */
-    modifier canDispute(address platform,uint txId)
-    {
+    modifier canDispute(address platform,uint txId){
         if(msg.sender != platform){
             uint createdTime = platformTokenData[platform][txId].createdDateTime;
             // If TIME_TO_CLAIM days have not passed since the token generation , the transaction cn be disputed.
@@ -79,11 +74,14 @@ contract StatusManager is AccessControlClient {
     * @dev modifier to validate whether a dipsute is allowed 
      * // reverts
      */
-    modifier canClaim(uint txId)
-    {
+    modifier canClaim(uint txId){
         uint createdTime = platformTokenData[msg.sender][txId].createdDateTime;
-        if(now - createdTime >= TIME_TO_CLAIM){_;}   
+        if(now - createdTime >= TIME_TO_CLAIM){_;}   //TO DO CHANGE THE IF AND CHECK > 0
     }
+
+    constructor (TruViewToken addr) public { token = TruViewToken(addr);}
+    
+
     /** 
      *  @dev checkState - checks if a State change is allowed
      *  @return bool True is the State change is allowed.
@@ -94,11 +92,8 @@ contract StatusManager is AccessControlClient {
     returns(bool)
     {
         //To dispute / claim a transaction , previous state has to be pending
-        if((nextState == State.Disputed || nextState == State.Claimed) && currState == State.Pending)
-        {
-            return true;
-        }
-        return false;
+        return currState == State.Pending && nextState != State.Pending;
+        
     }
      /** 
      *  @dev getNextTransactionIdVal - get next value for the transaction counter id.
@@ -106,8 +101,7 @@ contract StatusManager is AccessControlClient {
      */
     function getNextTransactionIdVal()
     internal
-    returns(uint)
-    {
+    returns(uint) {
         return ++transactionId;
     }
 
@@ -120,8 +114,7 @@ contract StatusManager is AccessControlClient {
     function addPlatform(address addr,string name)
     onlyPlatformAdmin
     public
-    returns (bool)
-    {
+    returns (bool){
         addRole(addr, ROLE_PLATFORM);
         emit AddPlatform(addr, msg.sender,name);
         return true;
@@ -153,8 +146,7 @@ contract StatusManager is AccessControlClient {
     public
     returns (bool)
     {   
-        TruViewToken mintNewToken;
-        mintNewToken.mint(address(this), amount);// the conrtact mints the tokens. later on the platform can claim it.
+        token.mint(address(this), amount);// the conrtact mints the tokens. later on the platform can claim it.
         TokenRequest storage newToken;
         newToken.state = State.Pending; // first state of a token is Pending
         newToken.url = url; // url that generated the engagemments for the tokens being genenrated 
@@ -177,9 +169,8 @@ contract StatusManager is AccessControlClient {
     canDispute(platform,txId)
     public
     {
-        TruViewToken disputeTokens;
         uint amount = platformTokenData[platform][txId].amount; //amount of token generated for this transaction.
-        disputeTokens.burn(amount);
+        token.burn(amount);
         //Change transcation status to Disputed
         platformTokenData[platform][txId].state = State.Disputed;
         emit Dispute(platform,txId,msg.sender,"disputed");
@@ -195,10 +186,10 @@ contract StatusManager is AccessControlClient {
     canClaim(txId)
     public
     {
-        TruViewToken disputeTokens;
+        
         //transfer funds
         uint amount = platformTokenData[msg.sender][txId].amount;// amount to be claimed
-        require(disputeTokens.transfer(msg.sender,amount));
+        require(token.transfer(msg.sender,amount));
        //Change transcation status to Claimed
         platformTokenData[msg.sender][txId].state = State.Claimed;
         emit Claim(msg.sender,txId,address(this),"claimed");
