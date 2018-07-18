@@ -1,11 +1,9 @@
 pragma solidity 0.4.24;
 
 
-import "./MintableToken.sol";
-import "./BurnableToken.sol";
-import "./StandardToken.sol";
 import "./DetailedERC20.sol";
-import "../ownership/Ownable.sol";
+import "./BurnableToken.sol";
+import "./MintableToken.sol";
 import "../ownership/AccessControlClient.sol";
 
 
