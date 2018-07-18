@@ -55,8 +55,8 @@ contract StatusManager is AccessControlClient {
     * // reverts
     */
     modifier isValidState(address platform,uint txId,State nextState){
-            State currState = platformTokenData[platform][txId].state;
-            if(checkState(currState,nextState)){_;}
+        State currState = platformTokenData[platform][txId].state;
+        if(checkState(currState,nextState)){_;}
     }
 
     /** 
@@ -189,9 +189,9 @@ contract StatusManager is AccessControlClient {
         
         //transfer funds
         uint amount = platformTokenData[msg.sender][txId].amount;// amount to be claimed
-        require(token.transfer(msg.sender,amount));
-       //Change transcation status to Claimed
+        //Change transcation status to Claimed
         platformTokenData[msg.sender][txId].state = State.Claimed;
+        require(token.transfer(msg.sender,amount));
         emit Claim(msg.sender,txId,address(this),"claimed");
     }
 
