@@ -25,17 +25,17 @@ var statusManagerContract = artifacts.require("./protocol/StatusMAnager.sol");
 
 contract('TruView Status Manager Contracts', function ([super_admin,pa,p1, p2, p3,tv]) {
 
-    var ADMIN_ROLE = "superAdmin"
+    var ADMIN_ROLE = "superAdmin";
     var PLATFORM_ADMIN = "platformAdmin";
     var PLATFORM_ROLE = "platform";
    
     beforeEach(async function () {
         acm = await accessControlContract.new({from: super_admin});
         token = await tokenContract.new(acm.address);
-        status_mgr = await statusManagerContract.new(token.address,{super_admin});
+        status_mgr = await statusManagerContract.new(token.address,acm,{super_admin});
 
         const result1 = await acm.adminAddRole(pa, PLATFORM_ADMIN, {from: super_admin});
-       // const result2 = await acm.adminAddRole(p1, PLATFORM_ROLE, {from: pa});
+        //const result2 = await acm.adminAddRole(p1, PLATFORM_ROLE, {from: pa});
        // const result3 = await acm.adminAddRole(p2, PLATFORM_ROLE, {from: pa});
        // const result4 = await acm.adminAddRole(p3, PLATFORM_ROLE, {from: pa});
     })
@@ -50,19 +50,20 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa,p1, p2, p
             describe('When Platform admin role', function () {
             const from = pa;
             it('add new platform', async function () {
-                await status_mgr.addPlatform(p1, "Platform1", {from});
+                await status_mgr.addPlatform(p1,'Platform1',{from});
                 let has = await acm.hasRole(p1, PLATFORM_ROLE);
-                assert(has)
+               assert(has);
             });
 
             it('emits an add new platform event', async function () {
-                const {logs} = await tatus_mgr.addPlatform(p1, "Platform1", {from});
+                const {logs} = await tatus_mgr.addPlatform(p1, 'Platform1', {from});
 
                 assert.equal(logs.length, 2);
                 assert.equal(logs[0].event, 'AddPlatform');
                 assert.equal(logs[0].args.platform, p1);
                 assert.equal(logs[0].args.admin, pa);
-                assert.equal(logs[0].args.platformName, "Platform1");
+                assert.equal(logs[0].args.platformName, 'Platform1');
+                assert.equal(logs[1].event, 'RoleAdded');
             }); 
             
         });
@@ -70,7 +71,7 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa,p1, p2, p
             describe('When not Platform admin role', function () {
               const from = tv;
              it('reverts', async function () {
-                 await assertRevert(status_mgr.addPlatform(p2, "Platform2", {from}));
+                 await assertRevert(status_mgr.addPlatform(p2, 'Platform2', {from}));
               });
             });
        

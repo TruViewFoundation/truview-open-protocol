@@ -90,11 +90,9 @@ contract StatusManager is AccessControlClient {
     function checkState(State currState,State nextState)
     internal
     pure
-    returns(bool)
-    {
+    returns(bool){
         //To dispute / claim a transaction , previous state has to be pending
-        return currState == State.Pending && nextState != State.Pending;
-        
+        return currState == State.Pending && nextState != State.Pending;   
     }
      /** 
      *  @dev getNextTransactionIdVal - get next value for the transaction counter id.
@@ -129,8 +127,7 @@ contract StatusManager is AccessControlClient {
     function removePlatform(address addr)
     onlyPlatformAdmin
     public
-    returns (bool)
-    {
+    returns (bool){
         removeRole(addr, ROLE_PLATFORM);
         emit RemovePlatform(addr, msg.sender);
         return true;
@@ -145,8 +142,7 @@ contract StatusManager is AccessControlClient {
     function generateToken (uint amount, string url )
     onlyPlatform
     public
-    returns (bool)
-    {   
+    returns (bool) {   
         token.mint(address(this), amount);// the conrtact mints the tokens. later on the platform can claim it.
         TokenRequest storage newToken;
         newToken.state = State.Pending; // first state of a token is Pending
@@ -168,8 +164,7 @@ contract StatusManager is AccessControlClient {
     onlyPlatform
     isValidState(platform,txId,State.Disputed)
     canDispute(platform,txId)
-    public
-    {
+    public {
         uint amount = platformTokenData[platform][txId].amount; //amount of token generated for this transaction.
         token.burn(amount);
         //Change transcation status to Disputed
@@ -185,9 +180,7 @@ contract StatusManager is AccessControlClient {
     onlyPlatform
     isValidState(msg.sender,txId,State.Claimed)
     canClaim(txId)
-    public
-    {
-        
+    public{    
         //transfer funds
         uint amount = platformTokenData[msg.sender][txId].amount;// amount to be claimed
         //Change transcation status to Claimed
