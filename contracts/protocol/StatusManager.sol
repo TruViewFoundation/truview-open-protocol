@@ -29,7 +29,7 @@ contract StatusManager is AccessControlClient {
 
     event AddPlatform(address platform , address admin , string platformName);
     event RemovePlatform(address platform , address admin);
-    event GenerateNewTokens(address platform , uint txId,uint amount,string url);
+    event GenerateNewTokens(address mintedBy , uint txId,uint amount,string url);
     event Dispute(address disputedPlatform ,uint txId, address auditor,string reason);
     event Claim(address toPlatform,uint txId,address from,string reason);
 
@@ -142,7 +142,7 @@ contract StatusManager is AccessControlClient {
     function generateToken (uint amount, string url )
     onlyPlatform
     public
-    returns (bool) {   
+    returns (bool) {  
         token.mint(address(this), amount);// the conrtact mints the tokens. later on the platform can claim it.
         TokenRequest storage newToken;
         newToken.state = State.Pending; // first state of a token is Pending
