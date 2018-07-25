@@ -20,7 +20,6 @@ contract StatusManager is AccessControlClient {
 
     struct TokenRequest { // Struct
         State  state; // Pending, Claimed, Disputed
-        string url; // platofrm that created the Token
         uint amount; // Number of token to create
         uint createdDateTime; // created time 
     }
@@ -146,21 +145,20 @@ contract StatusManager is AccessControlClient {
         token.mint(address(this), amount);// the conrtact mints the tokens. later on the platform can claim it.
         TokenRequest storage newToken;
         newToken.state = State.Pending; // first state of a token is Pending
-        newToken.url = url; // url that generated the engagemments for the tokens being genenrated 
         newToken.amount = amount; // amount of Tokens to generate
         newToken.createdDateTime = now;  // generating time 
         uint txId = getNextTransactionIdVal();
         platformTokenData[msg.sender][txId] = newToken;
         emit GenerateNewTokens(msg.sender, txId, amount, url);
-        return true;
-         
+        return true; 
+
     }
     /** 
      *  @dev disputeGeneration - cancel the generation of a token 
      *  @param platform -  the platoform which the tokens are being cancelled for
      *  @param txId -  the transaction which the tokens are being cancelled for
      */
-    function disputeGeneration (address platform,uint txId)
+    function disputeTokenGeneration (address platform,uint txId)
     onlyPlatform
     isValidState(platform,txId,State.Disputed)
     canDispute(platform,txId)
@@ -187,6 +185,18 @@ contract StatusManager is AccessControlClient {
         platformTokenData[msg.sender][txId].state = State.Claimed;
         require(token.transfer(msg.sender,amount));
         emit Claim(msg.sender,txId,address(this),"claimed");
+    }
+
+    /** 
+     *  @dev GetRequestData - returns request data based on address and txId
+     *  @param platform the address of the platform who created the request
+     *  @param txId the transaction which the tokens are being claimed for 
+     */
+    function GetRequestData (address platform, uint txId)
+    public
+    view
+    returns(uint  , uint ){   
+        return (platformTokenData[platform][txId].amount, platformTokenData[platform][txId].createdDateTime);
     }
 
 

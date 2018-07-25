@@ -7,6 +7,7 @@
 import assertRevert from "./helpers/assertRevert";
 import {inLogs} from './helpers/expectEvent';
 import { save } from "../node_modules/babel-register/lib/cache";
+import {increaseTimeTo, duration} from "./helpers/increaseTime";
 
 
 const BigNumber = web3.BigNumber;
@@ -104,6 +105,7 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
         beforeEach(async function () {
             const from = pa;
             const result = await status_mgr.addPlatform(p1, 'Platform1', {from});//Add p1 as a new platform
+            const result1 = await status_mgr.addPlatform(p2, 'Platform2', {from});//Add p1 as a new platform
            })
         describe('Gennerate new Token', function () {
             const from = p1;
@@ -134,5 +136,49 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
           });
        
          });
-    }); 
+
+         /*describe('Dispute Token', function () {
+               describe('When platform role', function () {  
+                it('dispute tokens', async function () {
+                    const from = p1;
+                    var amount = 200 * 10 ** _decimals;
+                    var url = 'https://truview.org';
+                    const {genToken} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                    const {logs} = await status_mgr.disputeTokenGeneration(p1,logs[0].args.txId, {from:p2}); // dispute token by a platform.
+                    assert.equal(logs.length, 1);
+                    assert.equal(logs[0].event, 'Dispute');
+                    assert.equal(logs[0].args.disputedPlatform, from);
+                    assert.equal(logs[0].args.txId, txId);
+                    assert.equal(logs[0].args.auditor, p2);
+                    assert.equal(logs[0].args.reason, 'disputed');
+            }); 
+
+            }); 
+    }); */
+
+    describe('Claim Token', function () {
+        describe('When platform role', function () {  
+            it('test claim', async function () {
+                const from = p1;
+                var url = 'https://truview.org';
+                var amount = 200 * 10 ** _decimals;
+                const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                const claimerBalance = await token.balanceOf(p1);
+                console.log('test logs',JSON.stringify(logs));
+                // const {claimedAmount,time} =
+                const a = await status_mgr.GetRequestData(p1,logs[0].args.txId); 
+                console.log('test claim',JSON.stringify(a));
+                assert(!time.eq(0));
+                assert(amount == claimedAmount);
+                let afterDispute = parseInt(time) + duration.days(30) + 1;
+                await increaseTimeTo(afterDispute);
+                await status_mgr.claimToken(txId, {from:p1});
+                const claimerBalance2 = await token.balanceOf(p1);
+                assert(claimerBalance2.eq(claimerBalance+claimedAmount));
+              });
+              
+
+     }); 
+}); 
+}); 
 });
