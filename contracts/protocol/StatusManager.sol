@@ -195,8 +195,9 @@ contract StatusManager is AccessControlClient {
     function GetRequestData (address platform, uint txId)
     public
     view
-    returns(uint  , uint ){   
-        return (platformTokenData[platform][txId].amount, platformTokenData[platform][txId].createdDateTime);
+    returns(uint amount ,uint time,State currState ){   
+        return (platformTokenData[platform][txId].amount, platformTokenData[platform][txId].createdDateTime,
+                platformTokenData[platform][txId].state);
     }
 
 
