@@ -141,17 +141,14 @@ contract StatusManager is AccessControlClient {
     function generateToken (uint amount, string url )
     onlyPlatform
     public
-    returns (bool) {  
-        token.mint(address(this), amount);// the conrtact mints the tokens. later on the platform can claim it.
-        TokenRequest storage newToken;
-        newToken.state = State.Pending; // first state of a token is Pending
-        newToken.amount = amount; // amount of Tokens to generate
-        newToken.createdDateTime = now;  // generating time 
+    returns (bool) {
+        token.mint(this, amount);// the conrtact mints the tokens. later on the platform can claim it.
         uint txId = getNextTransactionIdVal();
-        platformTokenData[msg.sender][txId] = newToken;
+        platformTokenData[msg.sender][txId].state = State.Pending; // first state of a token is Pending
+        platformTokenData[msg.sender][txId].amount = amount; // amount of Tokens to generate
+        platformTokenData[msg.sender][txId].createdDateTime = now;  // generating time
         emit GenerateNewTokens(msg.sender, txId, amount, url);
-        return true; 
-
+        return true;
     }
     /** 
      *  @dev disputeGeneration - cancel the generation of a token 
@@ -188,11 +185,11 @@ contract StatusManager is AccessControlClient {
     }
 
     /** 
-     *  @dev GetRequestData - returns request data based on address and txId
+     *  @dev getRequestData - returns request data based on address and txId
      *  @param platform the address of the platform who created the request
      *  @param txId the transaction which the tokens are being claimed for 
      */
-    function GetRequestData (address platform, uint txId)
+    function getRequestData (address platform, uint txId)
     public
     view
     returns(uint amount ,uint time,State currState ){   

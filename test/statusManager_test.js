@@ -164,17 +164,17 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
                 var amount = 200 * 10 ** _decimals;
                 const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
                 const claimerBalance = await token.balanceOf(p1);
-                console.log('test logs',JSON.stringify(logs));
-                // const {claimedAmount,time} =
-                const a = await status_mgr.GetRequestData(p1,logs[0].args.txId); 
-                console.log('test claim',JSON.stringify(a));
+                const txId = logs[0].args.txId
+                const a = await status_mgr.getRequestData(p1, txId);
+                const claimedAmount = a[0];
+                const time = a[1];
                 assert(!time.eq(0));
                 assert(amount == claimedAmount);
                 let afterDispute = parseInt(time) + duration.days(30) + 1;
                 await increaseTimeTo(afterDispute);
                 await status_mgr.claimToken(txId, {from:p1});
                 const claimerBalance2 = await token.balanceOf(p1);
-                assert(claimerBalance2.eq(claimerBalance+claimedAmount));
+                assert(claimerBalance2.eq(claimedAmount));
               });
               
 

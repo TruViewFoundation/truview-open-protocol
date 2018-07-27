@@ -48,11 +48,11 @@ contract TruViewToken is MintableToken, BurnableToken, DetailedERC20, AccessCont
     }
 
     function transfer(address _to, uint256 _value) canTransfer public returns (bool) {
-        super.transfer(_to,_value);
+         return super.transfer(_to,_value);
     }
 
     function transferFrom(address _from, address _to, uint256 _value) canTransfer public returns (bool) {
-        super.transferFrom(_from, _to, _value);
+        return super.transferFrom(_from, _to, _value);
     }
 
 }
