@@ -137,24 +137,38 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
        
          });
 
-         /*describe('Dispute Token', function () {
+         describe('Dispute Token', function () {
                describe('When platform role', function () {  
                 it('dispute tokens', async function () {
                     const from = p1;
                     var amount = 200 * 10 ** _decimals;
                     var url = 'https://truview.org';
-                    const {genToken} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
-                    const {logs} = await status_mgr.disputeTokenGeneration(p1,logs[0].args.txId, {from:p2}); // dispute token by a platform.
-                    assert.equal(logs.length, 1);
-                    assert.equal(logs[0].event, 'Dispute');
-                    assert.equal(logs[0].args.disputedPlatform, from);
-                    assert.equal(logs[0].args.txId, txId);
-                    assert.equal(logs[0].args.auditor, p2);
-                    assert.equal(logs[0].args.reason, 'disputed');
+                    const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                    const txId = logs[0].args.txId
+                    const balanceBeforeDispute =  await token.balanceOf(status_mgr.address);
+                    const a = await status_mgr.getRequestData(p1, txId);
+                    const amountToDispute = a[0];
+                    const time = a[1];
+                    assert(!time.eq(0));
+                    assert(amountToDispute <= balanceBeforeDispute);
+                    await status_mgr.disputeTokenGeneration(p1,logs[0].args.txId, {from:p2}); // dispute token by a platform.
+                    const amountAfterDispute = await token.balanceOf(p1);
+                    assert(balanceBeforeDispute-amountToDispute==amountAfterDispute);
             }); 
 
             }); 
-    }); */
+            describe('When not platform role', function () {  
+                const from = tv;
+                it('reverts', async function () {
+                    const from = p1;
+                    var amount = 200 * 10 ** _decimals;
+                    var url = 'https://truview.org';
+                    const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                    const txId = logs[0].args.txId
+                    assertRevert( status_mgr.disputeTokenGeneration(p1,logs[0].args.txId, {from}));
+                });
+            });  
+    }); 
 
     describe('Claim Token', function () {
         describe('When platform role', function () {  
@@ -179,6 +193,20 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
               
 
      }); 
+     describe('When not platform role', function () {  
+        const from = tv;
+        it('reverts', async function () {
+            var url = 'https://truview.org';
+            var amount = 200 * 10 ** _decimals;
+            const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+            const txId = logs[0].args.txId
+            const a = await status_mgr.getRequestData(p1, txId);
+            const time = a[1];
+            let afterDispute = parseInt(time) + duration.days(30) + 1;
+            await increaseTimeTo(afterDispute);
+            await assertRevert( status_mgr.claimToken(txId, {from}));
+        });
+    });
 }); 
 }); 
 });

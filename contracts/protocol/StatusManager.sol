@@ -65,7 +65,7 @@ contract StatusManager is AccessControlClient {
     modifier canDispute(address platform,uint txId){
         if(msg.sender != platform){
             uint createdTime = platformTokenData[platform][txId].createdDateTime;
-            // If TIME_TO_CLAIM days have not passed since the token generation , the transaction cn be disputed.
+            // If TIME_TO_CLAIM days have not passed since the token generation , the transaction can be disputed.
             if(now - createdTime < TIME_TO_CLAIM){_;}
         }
     }
