@@ -131,6 +131,22 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
         describe('When not Platform  role', function () {
             const from = tv;
            it('reverts', async function () {
+               const from = p1;
+                var url = 'https://truview.org';
+                var amount = 200 * 10 ** _decimals;
+                const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                const claimerBalance = await token.balanceOf(p1);
+                const txId = logs[0].args.txId
+                const a = await status_mgr.getRequestData(p1, txId);
+                const claimedAmount = a[0];
+                const time = a[1];
+                assert(!time.eq(0));
+                assert(amount == claimedAmount);
+                let afterDispute = parseInt(time) + duration.days(30) + 1;
+                await increaseTimeTo(afterDispute);
+                await status_mgr.claimToken(txId, {from:p1});
+                const claimerBalance2 = await token.balanceOf(p1);
+                assert(claimerBalance2.eq(claimedAmount));
               await assertRevert(status_mgr.generateToken(amount, url, {from}));
             });
           });
@@ -140,7 +156,6 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
          describe('Dispute Token', function () {
                describe('When platform role', function () {  
                 it('dispute tokens', async function () {
-                    const from = p1;
                     var amount = 200 * 10 ** _decimals;
                     var url = 'https://truview.org';
                     const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
@@ -151,29 +166,51 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
                     const time = a[1];
                     assert(!time.eq(0));
                     assert(amountToDispute <= balanceBeforeDispute);
-                    await status_mgr.disputeTokenGeneration(p1,logs[0].args.txId, {from:p2}); // dispute token by a platform.
+                    await status_mgr.disputeTokenGeneration(p1,txId, {from:p2}); // dispute token by a platform.
                     const amountAfterDispute = await token.balanceOf(p1);
                     assert(balanceBeforeDispute-amountToDispute==amountAfterDispute);
             }); 
+            it('reverts - dispute claimed tokens', async function () {
+                var url = 'https://truview.org';
+                var amount = 200 * 10 ** _decimals;
+                const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                const txId = logs[0].args.txId
+                const a = await status_mgr.getRequestData(p1, txId);
+                const time = a[1];
+                let afterDispute = parseInt(time) + duration.days(30) + 1;
+                await increaseTimeTo(afterDispute);
+                await status_mgr.claimToken(txId, {from:p1});
+                assertRevert( status_mgr.disputeTokenGeneration(p1,txId, {from:p2}));
+            });
+            it('revert -  dispute tokens after dispute time passed', async function () {
+                var amount = 200 * 10 ** _decimals;
+                var url = 'https://truview.org';
+                const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                const txId = logs[0].args.txId
+                const a = await status_mgr.getRequestData(p1, txId);
+                const claimedAmount = a[0];
+                const time = a[1];
+                let afterDispute = parseInt(time) + duration.days(30) + 1;
+                await increaseTimeTo(afterDispute);
+                await assertRevert(status_mgr.disputeTokenGeneration(p1,txId, {from:p2})); // dispute token by a platform.       
+        }); 
 
             }); 
             describe('When not platform role', function () {  
                 const from = tv;
                 it('reverts', async function () {
-                    const from = p1;
                     var amount = 200 * 10 ** _decimals;
                     var url = 'https://truview.org';
                     const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
                     const txId = logs[0].args.txId
-                    assertRevert( status_mgr.disputeTokenGeneration(p1,logs[0].args.txId, {from}));
+                    assertRevert( status_mgr.disputeTokenGeneration(p1,txId, {from}));
                 });
             });  
     }); 
 
     describe('Claim Token', function () {
         describe('When platform role', function () {  
-            it('test claim', async function () {
-                const from = p1;
+            it('claim tokens', async function () {
                 var url = 'https://truview.org';
                 var amount = 200 * 10 ** _decimals;
                 const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
@@ -190,9 +227,24 @@ contract('TruView Status Manager Contracts', function ([super_admin,pa, p1, p2, 
                 const claimerBalance2 = await token.balanceOf(p1);
                 assert(claimerBalance2.eq(claimedAmount));
               });
-              
-
-     }); 
+              it('reverts- claiming disputed tokens', async function () {
+                var amount = 200 * 10 ** _decimals;
+                var url = 'https://truview.org';
+                const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                const txId = logs[0].args.txId
+                await status_mgr.disputeTokenGeneration(p1,txId, {from:p2}); // dispute token by a platform.
+                await assertRevert( status_mgr.claimToken(txId, {from:p1}));
+            });
+            it('reverts- claiming before claiming time passed', async function () {
+                var url = 'https://truview.org';
+                var amount = 200 * 10 ** _decimals;
+                const {logs} = await status_mgr.generateToken(amount, url, {from:p1}); // generate new tokens
+                //const claimerBalance = await token.balanceOf(p1);
+                const txId = logs[0].args.txId
+                await assertRevert(status_mgr.claimToken(txId, {from:p1}));
+              });
+               
+            });
      describe('When not platform role', function () {  
         const from = tv;
         it('reverts', async function () {
