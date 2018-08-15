@@ -1,6 +1,6 @@
 # truview-open-protocol
 The repo contains the functionality for:
-  - Defining the ownership structutre - create and manage roles.
+  - Defining the ownership structure - create and manage roles.
   - Managing the eco system participants - add/remove platforms.
   - New generation of TRU tokens - Generate / Dispute / Claim.
 
