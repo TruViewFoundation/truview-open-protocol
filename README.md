@@ -1,6 +1,6 @@
 # truview-open-protocol
 The repo contains the functionality for:
-  - Defining the ownership strucutre - create and manage roles.
+  - Defining the ownership structutre - create and manage roles.
   - Managing the eco system participants - add/remove platforms.
   - New generation of TRU tokens - Generate / Dispute / Claim.
 
@@ -18,3 +18,4 @@ Some roles are entitled to manage the eco system participants
 The TruView Tokens are genenrated by platofrms (limited by role), generate tokens are locked for 30 days in which the tokens genenration
 can be disputed . Oncethe locking period is completed , the generating platfomr canclaim the token and transfer them.
 This mechanism allows identifying problematic / fraudual activity before the tokens ar eactually created and transfer to other participants.
+
