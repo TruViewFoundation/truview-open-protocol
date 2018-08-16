@@ -16,7 +16,7 @@ Some roles are entitled to manage the eco system participants
 # New Tokens Generation
 
 The TruView Tokens are genenrated by platofrms (limited by role), generate tokens are locked for 30 days in which the tokens genenration
-can be disputed . Oncethe locking period is completed , the generating platfomr canclaim the token and transfer them.
+can be disputed . Oncethe locking period is completed , the generating platform can claim the token and transfer them.
 This mechanism allows identifying problematic / fraudual activity before the tokens ar eactually created and transfer to other participants.
 
 ### Installation
