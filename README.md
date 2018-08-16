@@ -19,3 +19,28 @@ The TruView Tokens are genenrated by platofrms (limited by role), generate token
 can be disputed . Oncethe locking period is completed , the generating platfomr canclaim the token and transfer them.
 This mechanism allows identifying problematic / fraudual activity before the tokens ar eactually created and transfer to other participants.
 
+### Installation
+Pre-requirements:
+
+- node v8.4.0 or later  
+- npm 5.6.0 or later
+
+**Install ganache-cli**
+```sh
+$ npm install -g ganache-cli 
+```
+
+**Install the repo**
+```ssh
+$ git clone https://github.com/TruViewFoundation/truview-open-protocol.git && cd truview-open-protocol
+
+```
+**Run ganache**
+```ssh
+$ ganache-cli 
+```
+
+**Run the tests**
+```ssh
+$ truffle test 
+```
